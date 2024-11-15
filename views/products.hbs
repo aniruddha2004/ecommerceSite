@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Products</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+  {{> navbar }}
+
+  <div class="container mt-4">
+    <h2>Our Products</h2>
+
+    {{#if user.isAdmin}}
+      <div class="mb-4">
+        <a href="/products/add" class="btn btn-success">Add Product</a>
+      </div>
+    {{/if}}
+
+    <div class="row">
+      {{#each products}}
+      <div class="col-md-4">
+        <div class="card mb-4">
+          <img src="{{this.imageUrl}}" class="card-img-top" alt="{{this.name}}">
+          <div class="card-body">
+            <h5 class="card-title">{{this.name}}</h5>
+            <p class="card-text">{{this.description}}</p>
+            <p class="card-text"><strong>${{this.price}}</strong></p>
+
+            {{#if ../user.isAdmin}}
+              <form action="/products/delete/{{this._id}}" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+              </form>
+            {{else}}
+              <form action="/cart/add/{{this._id}}" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-primary btn-sm">Add to Cart</button>
+              </form>
+            {{/if}}
+          </div>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

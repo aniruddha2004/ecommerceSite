@@ -1,0 +1,33 @@
+<!-- views/orders.hbs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>My Orders</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+  {{> navbar }}
+
+  <div class="container mt-4">
+    <h2>My Orders</h2>
+    {{#if orders}}
+      <ul class="list-group">
+        {{#each orders}}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Order #{{this._id}} - Status: {{this.status}}
+            {{#if this.canCancel}}
+              <a href="/orders/cancel/{{this._id}}" class="btn btn-warning btn-sm">Cancel</a>
+            {{/if}}
+          </li>
+        {{/each}}
+      </ul>
+    {{else}}
+      <p>You have no orders.</p>
+    {{/if}}
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
