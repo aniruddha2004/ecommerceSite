@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const Product = require('../models/Product');
 const Cart = require('../models/Cart');
+const Order = require('../models/Order');
 
 const home = (req, res) => {
   res.render('home');
@@ -49,11 +50,6 @@ const deleteProduct = async (req, res) => {
   } catch (error) {
     res.status(500).send("Error deleting product");
   }
-};
-
-const myOrders = (req, res) => {
-  if (!req.session.user) return res.redirect('/login');
-  res.render('order');
 };
 
 const login = (req, res) => {
@@ -124,7 +120,7 @@ const logout = (req, res) => {
   });
 };
 
-// Add a product to the user's cart
+//Add a product to the user's cart
 const addToCart = async (req, res) => {
   if (!req.session.user) return res.redirect('/login');
   
@@ -190,7 +186,7 @@ const updateQuantity = async (req, res) => {
   }
 };
 
-// Remove an item from the cart
+// // Remove an item from the cart
 const removeFromCart = async (req, res) => {
   if (!req.session.user) return res.redirect('/login');
 
@@ -208,11 +204,115 @@ const removeFromCart = async (req, res) => {
   }
 };
 
+const checkout = async (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+
+  const userId = req.session.user.id;
+
+  try {
+    const cart = await Cart.findOne({ user: userId }).populate('items.product');
+    if (!cart || cart.items.length === 0) return res.redirect('/cart');
+
+    const total = cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+    res.render('checkout', { cart, total, user: req.session.user });
+  } catch (error) {
+    res.status(500).send("Error loading checkout page");
+  }
+};
+
+const placeOrder = async (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+
+  const userId = req.session.user.id;
+
+  try {
+    const cart = await Cart.findOne({ user: userId }).populate('items.product');
+    if (!cart || cart.items.length === 0) return res.redirect('/cart');
+
+    const total = cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+
+    // Create a new order
+    const newOrder = new Order({
+      user: userId,
+      items: cart.items,
+      total,
+      status: 'Pending',
+      paymentMethod: 'COD',
+    });
+
+    await newOrder.save();
+
+    // Clear the cart
+    cart.items = [];
+    await cart.save();
+
+    res.redirect('/orders');
+  } catch (error) {
+    res.status(500).send("Error placing order");
+  }
+};
+
+const myOrders = async (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+
+  const userId = req.session.user.id;
+
+  try {
+    const orders = await Order.find({ user: userId }).populate('items.product');
+    res.render('order', { orders, user: req.session.user });
+  } catch (error) {
+    res.status(500).send("Error loading orders");
+  }
+};
+
+const viewAllOrders = async (req, res) => {
+  if (!req.session.user || !req.session.user.isAdmin) {
+    return res.redirect('/login');
+  }
+
+  try {
+    const orders = await Order.find({})
+      .populate('user', 'username') // Include user information
+      .populate('items.product');  // Include product details
+
+    res.render('adminOrders', { orders, user: req.session.user });
+  } catch (error) {
+    console.error("Error loading all orders:", error);
+    res.status(500).send("Error loading all orders");
+  }
+};
+
+
+const updateOrderStatus = async (req, res) => {
+  if (!req.session.user || !req.session.user.isAdmin) {
+    return res.redirect('/login');
+  }
+
+  const { orderId } = req.params;
+  const { status } = req.body; // The new status
+
+  try {
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).send("Order not found");
+    }
+
+    order.status = status; // Update the status
+    await order.save();
+
+    res.redirect('/admin/orders'); // Redirect back to the all orders page
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    res.status(500).send("Error updating order status");
+  }
+};
+
+
+
 
 module.exports = {
   home,
   products,
-  myOrders,
   login,
   processLogin,
   register,
@@ -225,4 +325,9 @@ module.exports = {
   viewCart,
   updateQuantity,
   removeFromCart,
+  checkout,
+  placeOrder,
+  myOrders,
+  viewAllOrders,
+  updateOrderStatus,
 };

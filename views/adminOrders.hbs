@@ -1,16 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>My Orders</title>
-  <link rel="stylesheet" href="/css/styles.css">
+  <title>All Orders</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-  {{> navbar }}
-
+    {{> navbar }}
   <div class="container mt-4">
-    <h2>My Orders</h2>
-
+    <h2>All Orders</h2>
     {{#if orders.length}}
       <ul class="list-group">
         {{#each orders}}
@@ -23,11 +20,20 @@
             </ul>
             <p>Total: ${{this.total}}</p>
             <p>Status: {{this.status}}</p>
+            <form action="/admin/orders/{{this._id}}" method="POST">
+              <select name="status" class="form-control mb-2" style="width: auto;">
+                <option value="Pending">Pending</option>
+                <option value="Shipped">Shipped</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+              <button type="submit" class="btn btn-primary btn-sm">Update Status</button>
+            </form>
           </li>
         {{/each}}
       </ul>
     {{else}}
-      <p>You have no orders yet.</p>
+      <p>No orders found.</p>
     {{/if}}
   </div>
 

@@ -4,8 +4,12 @@
     <ul class="navbar-nav mr-auto">
       <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
       <li class="nav-item"><a class="nav-link" href="/products">Products</a></li>
-      <li class="nav-item"><a class="nav-link" href="/cart">Cart</a></li>
-      <li class="nav-item"><a class="nav-link" href="/orders">My Orders</a></li>
+      {{#if user.isAdmin}}
+        <li class="nav-item"><a class="nav-link" href="/admin/orders">All Orders</a></li>
+      {{else}}
+        <li class="nav-item"><a class="nav-link" href="/cart">Cart</a></li>
+        <li class="nav-item"><a class="nav-link" href="/orders">My Orders</a></li>
+      {{/if}}
     </ul>
     <ul class="navbar-nav ml-auto">
       {{#if user}}
