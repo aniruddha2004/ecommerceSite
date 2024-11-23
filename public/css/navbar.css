@@ -1,0 +1,72 @@
+/* Navbar Styles */
+.navbar {
+    background-color: rgba(0, 0, 0, 0.7) !important; /* Matches jumbotron background */
+    color: #fbc531; /* Matches jumbotron text color */
+    padding: 10px 20px;
+  }
+  
+  .navbar .navbar-brand,
+  .navbar .nav-link {
+    color: #fbc531 !important; /* Bright text for readability */
+    font-weight: bold;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  .navbar .nav-link:hover {
+    color: #e1a321 !important; /* Slightly darker shade on hover */
+    text-decoration: none; /* Clean design */
+  }
+  
+  .navbar-text {
+    color: #fbc531; /* Matches other navbar elements */
+    font-weight: bold;
+  }
+  
+  .navbar-toggler {
+    border: none; /* Clean look without a border */
+  }
+  
+  .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23fbc531' viewBox='0 0 30 30'%3E%3Cpath stroke='%23fbc531' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+  }
+  
+  /* Ensure hover color matches link hover effect */
+  .navbar-toggler:hover .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23e1a321' viewBox='0 0 30 30'%3E%3Cpath stroke='%23e1a321' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+  }
+  
+  .navbar-collapse {
+    justify-content: space-between;
+  }
+  
+  /* Dropdown Styles (if any) */
+  .dropdown-menu {
+    background-color: rgba(0, 0, 0, 0.8); /* Matches the navbar background */
+    border: none;
+  }
+  
+  .dropdown-item {
+    color: #fbc531;
+    font-weight: bold;
+  }
+  
+  .dropdown-item:hover {
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #e1a321;
+  }
+  
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .navbar .navbar-brand {
+      font-size: 1.2rem;
+    }
+  
+    .navbar .nav-link {
+      font-size: 1rem;
+    }
+  
+    .navbar-text {
+      font-size: 0.9rem;
+    }
+  }
+  

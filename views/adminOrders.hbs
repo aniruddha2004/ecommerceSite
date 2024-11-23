@@ -1,41 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>All Orders</title>
+  <title>All Orders - Admin Panel</title>
+  <link rel="stylesheet" href="/css/home.css"> <!-- Consistent styling -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/navbar.css">
+  <style>
+    /* Custom styles for admin orders page */
+    .order-card {
+      background-color: rgba(0, 0, 0, 0.8); /* Dark background for cards */
+      color: #fbc531; /* Yellow text for headers and labels */
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      margin-bottom: 20px;
+      height: 300px;
+    }
+    .order-card h5 {
+      color: #fbc531; /* Highlighted yellow for order ID */
+      font-weight: bold;
+    }
+    .order-card ul {
+      list-style: none;
+      padding: 0;
+    }
+    .order-card ul li {
+      color: #fff; /* White text for items */
+      margin-bottom: 5px;
+    }
+    .order-card p {
+      color: #fff; /* White text for total and status */
+    }
+    .order-card p strong {
+      color: #fbc531; /* Yellow for labels */
+    }
+    .order-card select {
+      background-color: transparent; /* Transparent background */
+      color: #fff; /* White text */
+      border: 1px solid #fbc531; /* Yellow border */
+      border-radius: 5px;
+      padding: 5px;
+    }
+    .order-card select:focus {
+      outline: none;
+      border-color: #fbc531;
+      box-shadow: 0 0 5px rgba(251, 197, 49, 0.7); /* Glow effect */
+    }
+    .order-card option {
+      background-color: rgba(0, 0, 0, 0.8); /* Dropdown options match card background */
+      color: #fff; /* White text for options */
+    }
+    .order-card button {
+      background-color: #fbc531; /* Yellow button */
+      border: none;
+      color: #000;
+      font-weight: bold;
+    }
+    .order-card button:hover {
+      background-color: #e1a321;
+    }
+  </style>
 </head>
 <body>
-    {{> navbar }}
-  <div class="container mt-4">
-    <h2>All Orders</h2>
+  {{> navbar }}
+
+  <!-- Jumbotron -->
+  <div class="jumbotron text-center">
+    <h1 class="display-4">All Orders</h1>
+    <p class="lead">Manage and update the status of all customer orders.</p>
+  </div>
+
+  <!-- Orders Section -->
+  <div class="container my-5">
+    <h2 class="text-center mb-4">All Orders</h2>
+
     {{#if orders.length}}
-      <ul class="list-group">
+      <div class="row">
         {{#each orders}}
-          <li class="list-group-item">
+        <div class="col-md-6">
+          <div class="order-card">
             <h5>Order #{{this._id}}</h5>
             <ul>
               {{#each this.items}}
-                <li>{{this.product.name}} (x{{this.quantity}})</li>
+              <li>{{this.product.name}} (x{{this.quantity}})</li>
               {{/each}}
             </ul>
-            <p>Total: ${{this.total}}</p>
-            <p>Status: {{this.status}}</p>
+            <p><strong>Total:</strong> ₹{{this.total}}</p>
+            <p><strong>Status:</strong> {{this.status}}</p>
             <form action="/admin/orders/{{this._id}}" method="POST">
-              <select name="status" class="form-control mb-2" style="width: auto;">
+              <select name="status" class="form-control">
                 <option value="Pending">Pending</option>
                 <option value="Shipped">Shipped</option>
                 <option value="Delivered">Delivered</option>
                 <option value="Cancelled">Cancelled</option>
               </select>
-              <button type="submit" class="btn btn-primary btn-sm">Update Status</button>
+              <button type="submit" class="btn btn-primary btn-sm mt-2">Update Status</button>
             </form>
-          </li>
+          </div>
+        </div>
         {{/each}}
-      </ul>
+      </div>
     {{else}}
-      <p>No orders found.</p>
+      <div class="text-center">
+        <p class="lead">No orders found.</p>
+      </div>
     {{/if}}
   </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2024 Vintage Finds & Upcycling. All rights reserved.</p>
+  </footer>
 
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>

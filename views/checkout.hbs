@@ -1,27 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Checkout</title>
-  <link rel="stylesheet" href="/css/styles.css">
+  <title>Checkout - Vintage Finds & Upcycling</title>
+  <link rel="stylesheet" href="/css/home.css"> <!-- Consistent styling -->
+  <link rel="stylesheet" href="/css/navbar.css">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    /* Custom styling for the order summary */
+    .order-summary-card {
+      background-color: rgba(0, 0, 0, 0.8); /* Dark background for the card */
+      color: #fbc531; /* Yellow text for headers and labels */
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+    .order-summary-card h2, .order-summary-card h3 {
+      color: #fbc531; /* Highlighted yellow text */
+    }
+    .order-summary-card ul {
+      list-style: none;
+      padding: 0;
+    }
+    .order-summary-card ul li {
+      background: none;
+      border: none;
+      color: #fff; /* White text for item details */
+      margin-bottom: 10px;
+    }
+    .order-summary-card ul li span {
+      color: #fff; /* Consistent text color for spans */
+    }
+    .btn-primary {
+      background-color: #fbc531;
+      border: none;
+    }
+    .btn-primary:hover {
+      background-color: #e1a321;
+    }
+  </style>
 </head>
 <body>
   {{> navbar }}
 
-  <div class="container mt-4">
-    <h2>Order Summary</h2>
-    <ul class="list-group">
-      {{#each cart.items}}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
+  <!-- Order Summary Section -->
+  <div class="container my-5">
+    <div class="order-summary-card mx-auto" style="max-width: 800px;">
+      <h2 class="text-center mb-4">Order Summary</h2>
+      <ul class="list-group">
+        {{#each cart}}
+        <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent">
           <span>{{this.product.name}} (x{{this.quantity}})</span>
-          <span>${{this.product.price}}</span>
+          <span>₹{{this.product.price}}</span>
         </li>
-      {{/each}}
-    </ul>
-    <h3 class="mt-4 text-right">Total: ${{total}}</h3>
-    <form action="/checkout" method="POST" class="mt-4 text-right">
-      <button type="submit" class="btn btn-primary">Place Order</button>
-    </form>
+        {{/each}}
+      </ul>
+      <h3 class="mt-4 text-right">Total: ₹{{total}}</h3>
+      <form action="/checkout" method="POST" class="mt-4 text-right">
+        <button type="submit" class="btn btn-primary btn-lg">Place Order</button>
+      </form>
+    </div>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>

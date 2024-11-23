@@ -2,7 +2,6 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const Product = require('../models/Product');
-const Cart = require('../models/Cart');
 const Order = require('../models/Order');
 
 const home = (req, res) => {
@@ -15,40 +14,6 @@ const products = async (req, res) => {
     res.render('products', { products, user: req.session.user });
   } catch (error) {
     res.status(500).send("Error retrieving products");
-  }
-};
-
-const addProductForm = (req, res) => {
-  if (!req.session.user || !req.session.user.isAdmin) {
-    return res.redirect('/login');
-  }
-  res.render('addProduct');
-};
-
-const addProduct = async (req, res) => {
-  if (!req.session.user || !req.session.user.isAdmin) {
-    return res.redirect('/login');
-  }
-  const { name, description, price, imageUrl } = req.body;
-  try {
-    const newProduct = new Product({ name, description, price, imageUrl });
-    await newProduct.save();
-    res.redirect('/products');
-  } catch (error) {
-    res.status(500).send("Error adding product");
-  }
-};
-
-// Delete a product (for Admins only)
-const deleteProduct = async (req, res) => {
-  if (!req.session.user || !req.session.user.isAdmin) {
-    return res.redirect('/login');
-  }
-  try {
-    await Product.findByIdAndDelete(req.params.id);
-    res.redirect('/products');
-  } catch (error) {
-    res.status(500).send("Error deleting product");
   }
 };
 
@@ -85,29 +50,27 @@ const processLogin = async (req, res) => {
 
 
 const processRegister = async (req, res) => {
-  const { username, password, isAdmin } = req.body; // Assume isAdmin is passed for role
-  console.log("Registration processing triggered");
+  const { username, password, isAdmin } = req.body;
 
   try {
-    // Hash the password
-    const saltRounds = 10; // Number of hashing rounds
+    const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create the user
     const newUser = new User({
       username,
       password: hashedPassword,
-      isAdmin: isAdmin || false
+      isAdmin: isAdmin || false,
+      cart: [], // Initialize empty cart
     });
 
     await newUser.save();
-    console.log("Registration Successful");
-    res.redirect('/login'); // Redirect to login after successful registration
+    res.redirect('/login');
   } catch (error) {
     console.error("Error during registration:", error);
     res.render('register', { error: 'An error occurred during registration' });
   }
 };
+
 
 // controllers/userController.js
 const logout = (req, res) => {
@@ -123,31 +86,24 @@ const logout = (req, res) => {
 //Add a product to the user's cart
 const addToCart = async (req, res) => {
   if (!req.session.user) return res.redirect('/login');
-  
+
   const userId = req.session.user.id;
   const productId = req.params.productId;
 
   try {
-    let cart = await Cart.findOne({ user: userId });
+    const user = await User.findById(userId);
 
-    if (cart) {
-      const itemIndex = cart.items.findIndex(item => item.product.toString() === productId);
-      
-      if (itemIndex > -1) {
-        cart.items[itemIndex].quantity += 1;
-      } else {
-        cart.items.push({ product: productId, quantity: 1 });
-      }
-    } else {
-      cart = new Cart({ user: userId, items: [{ product: productId, quantity: 1 }] });
+    if (user) {
+      user.cart.push(productId); // Add product ID to cart
+      await user.save();
     }
 
-    await cart.save();
     res.redirect('/products');
   } catch (error) {
     res.status(500).send("Error adding to cart");
   }
 };
+
 
 // View the user's cart
 const viewCart = async (req, res) => {
@@ -156,12 +112,48 @@ const viewCart = async (req, res) => {
   const userId = req.session.user.id;
 
   try {
-    const cart = await Cart.findOne({ user: userId }).populate('items.product');
+    const user = await User.findById(userId);
+
+    if (!user.cart || user.cart.length === 0) {
+      return res.render('cart', { cart: [], user: req.session.user });
+    }
+
+    // Count occurrences of each product ID in the cart array
+    const productCounts = {};
+    user.cart.forEach(productId => {
+      productCounts[productId.toString()] = (productCounts[productId.toString()] || 0) + 1;
+    });
+
+    // Fetch product details from the database
+    const productIds = Object.keys(productCounts); // Extract unique product IDs
+    const products = await Product.find({ _id: { $in: productIds } }); // Query database for these products
+
+    // Map product details with quantity and subtotal
+    const cart = products.map(product => {
+      const quantity = productCounts[product._id.toString()];
+      return {
+        _id: product._id,       // Product ID for reference
+        name: product.name,     // Product name
+        price: product.price,   // Product price
+        quantity,               // Quantity of this product
+        subtotal: product.price * quantity, // Calculate subtotal
+        imageUrl: product.imageUrl,
+      };
+    });
+
     res.render('cart', { cart, user: req.session.user });
   } catch (error) {
+    console.error("Error retrieving cart:", error);
     res.status(500).send("Error retrieving cart");
   }
 };
+
+
+
+
+
+
+
 
 // Update the quantity of a cart item
 const updateQuantity = async (req, res) => {
@@ -172,19 +164,21 @@ const updateQuantity = async (req, res) => {
   const { quantity } = req.body;
 
   try {
-    const cart = await Cart.findOne({ user: userId });
-    const item = cart.items.find(item => item.product.toString() === productId);
+    const user = await User.findById(userId);
 
-    if (item) {
-      item.quantity = quantity;
-      await cart.save();
+    // Filter out the product and add the new quantity
+    user.cart = user.cart.filter(id => id.toString() !== productId);
+    for (let i = 0; i < quantity; i++) {
+      user.cart.push(productId);
     }
 
+    await user.save();
     res.redirect('/cart');
   } catch (error) {
-    res.status(500).send("Error updating cart");
+    res.status(500).send("Error updating quantity");
   }
 };
+
 
 // // Remove an item from the cart
 const removeFromCart = async (req, res) => {
@@ -194,9 +188,10 @@ const removeFromCart = async (req, res) => {
   const productId = req.params.productId;
 
   try {
-    const cart = await Cart.findOne({ user: userId });
-    cart.items = cart.items.filter(item => item.product.toString() !== productId);
-    await cart.save();
+    const user = await User.findById(userId);
+
+    user.cart = user.cart.filter(id => id.toString() !== productId); // Remove all occurrences
+    await user.save();
 
     res.redirect('/cart');
   } catch (error) {
@@ -204,21 +199,50 @@ const removeFromCart = async (req, res) => {
   }
 };
 
+
 const checkout = async (req, res) => {
   if (!req.session.user) return res.redirect('/login');
 
   const userId = req.session.user.id;
 
   try {
-    const cart = await Cart.findOne({ user: userId }).populate('items.product');
-    if (!cart || cart.items.length === 0) return res.redirect('/cart');
+    const user = await User.findById(userId);
 
-    const total = cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+    if (!user.cart || user.cart.length === 0) {
+      return res.redirect('/cart'); // Redirect to cart if it's empty
+    }
+
+    // Count occurrences of each product ID in the cart array
+    const productCounts = {};
+    user.cart.forEach(productId => {
+      productCounts[productId.toString()] = (productCounts[productId.toString()] || 0) + 1;
+    });
+
+    // Fetch product details from the database
+    const productIds = Object.keys(productCounts); // Extract unique product IDs
+    const products = await Product.find({ _id: { $in: productIds } }); // Query database for these products
+
+    // Map product details with quantity
+    const cart = products.map(product => ({
+      product: {
+        _id: product._id,
+        name: product.name,
+        price: product.price,
+      },
+      quantity: productCounts[product._id.toString()],
+    }));
+
+    // Calculate total price
+    const total = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+
     res.render('checkout', { cart, total, user: req.session.user });
   } catch (error) {
+    console.error("Error loading checkout page:", error);
     res.status(500).send("Error loading checkout page");
   }
 };
+
+
 
 const placeOrder = async (req, res) => {
   if (!req.session.user) return res.redirect('/login');
@@ -226,31 +250,42 @@ const placeOrder = async (req, res) => {
   const userId = req.session.user.id;
 
   try {
-    const cart = await Cart.findOne({ user: userId }).populate('items.product');
-    if (!cart || cart.items.length === 0) return res.redirect('/cart');
+    const user = await User.findById(userId).populate('cart');
+    if (!user.cart.length) return res.redirect('/cart');
 
-    const total = cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+    const productCounts = {};
+    user.cart.forEach(product => {
+      productCounts[product.id] = (productCounts[product.id] || 0) + 1;
+    });
 
-    // Create a new order
+    const items = Object.entries(productCounts).map(([productId, quantity]) => ({
+      product: productId,
+      quantity,
+    }));
+
+    const total = items.reduce((sum, item) => {
+      const product = user.cart.find(p => p.id === item.product);
+      return sum + product.price * item.quantity;
+    }, 0);
+
     const newOrder = new Order({
       user: userId,
-      items: cart.items,
+      items,
       total,
       status: 'Pending',
       paymentMethod: 'COD',
     });
 
     await newOrder.save();
-
-    // Clear the cart
-    cart.items = [];
-    await cart.save();
+    user.cart = []; // Clear the cart
+    await user.save();
 
     res.redirect('/orders');
   } catch (error) {
     res.status(500).send("Error placing order");
   }
 };
+
 
 const myOrders = async (req, res) => {
   if (!req.session.user) return res.redirect('/login');
@@ -265,50 +300,6 @@ const myOrders = async (req, res) => {
   }
 };
 
-const viewAllOrders = async (req, res) => {
-  if (!req.session.user || !req.session.user.isAdmin) {
-    return res.redirect('/login');
-  }
-
-  try {
-    const orders = await Order.find({})
-      .populate('user', 'username') // Include user information
-      .populate('items.product');  // Include product details
-
-    res.render('adminOrders', { orders, user: req.session.user });
-  } catch (error) {
-    console.error("Error loading all orders:", error);
-    res.status(500).send("Error loading all orders");
-  }
-};
-
-
-const updateOrderStatus = async (req, res) => {
-  if (!req.session.user || !req.session.user.isAdmin) {
-    return res.redirect('/login');
-  }
-
-  const { orderId } = req.params;
-  const { status } = req.body; // The new status
-
-  try {
-    const order = await Order.findById(orderId);
-    if (!order) {
-      return res.status(404).send("Order not found");
-    }
-
-    order.status = status; // Update the status
-    await order.save();
-
-    res.redirect('/admin/orders'); // Redirect back to the all orders page
-  } catch (error) {
-    console.error("Error updating order status:", error);
-    res.status(500).send("Error updating order status");
-  }
-};
-
-
-
 
 module.exports = {
   home,
@@ -318,9 +309,6 @@ module.exports = {
   register,
   processRegister,
   logout,
-  addProductForm,
-  addProduct,
-  deleteProduct,
   addToCart,
   viewCart,
   updateQuantity,
@@ -328,6 +316,4 @@ module.exports = {
   checkout,
   placeOrder,
   myOrders,
-  viewAllOrders,
-  updateOrderStatus,
 };

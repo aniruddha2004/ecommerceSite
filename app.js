@@ -26,6 +26,7 @@ hbs.registerPartials(path.join(__dirname, 'views/partials'));
 
 // Routes
 app.use('/', require('./routes/userRoutes'));
+app.use('/', require('./routes/adminRoutes'));
 
 app.use((req, res, next) => {
     res.locals.user = req.session.user;
