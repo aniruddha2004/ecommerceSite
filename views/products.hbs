@@ -35,7 +35,7 @@
           <div class="card-body text-center">
             <h5 class="card-title">{{this.name}}</h5>
             <p class="card-text">{{this.description}}</p>
-            <p class="card-text"><strong>${{this.price}}</strong></p>
+            <p class="card-text"><strong>₹{{this.price}}</strong></p>
             
             {{#if ../user.isAdmin}}
               <form action="/products/delete/{{this._id}}" method="POST" class="d-inline-block">

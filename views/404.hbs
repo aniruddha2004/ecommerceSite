@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>404 - Page Not Found</title>
+  <link rel="stylesheet" href="/css/home.css"> <!-- Consistent styling -->
+  <link rel="stylesheet" href="/css/navbar.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    /* Custom styling for 404 page */
+    .error-container {
+      background-color: rgba(0, 0, 0, 0.9); /* Dark background */
+      color: #fbc531; /* Yellow text for headings */
+      border-radius: 10px;
+      padding: 50px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+      margin: auto;
+      text-align: center;
+    }
+    .error-container h1 {
+      font-size: 6rem;
+      margin-bottom: 20px;
+      color: #fbc531;
+      font-weight: bold;
+    }
+    .error-container p {
+      color: #fff; /* White text for the description */
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+    }
+    .error-container a {
+      color: #000;
+      background-color: #fbc531; /* Yellow button */
+      padding: 10px 20px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    .error-container a:hover {
+      background-color: #e1a321;
+    }
+  </style>
+</head>
+<body>
+  {{> navbar }}
+
+  <!-- Error Page Content -->
+  <div class="container my-5">
+    <div class="error-container">
+      <h1>404</h1>
+      <p>Oops! The page you are looking for does not exist.</p>
+      <a href="/">Go Back Home</a>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2024 Vintage Finds & Upcycling. All rights reserved.</p>
+  </footer>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

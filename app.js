@@ -16,7 +16,7 @@ dbConfig();
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));
+app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Setting up Handlebars
@@ -28,11 +28,17 @@ hbs.registerPartials(path.join(__dirname, 'views/partials'));
 app.use('/', require('./routes/userRoutes'));
 app.use('/', require('./routes/adminRoutes'));
 
+// 404 Route (Keep this as the last route)
+app.get('*', (req, res) => {
+  res.status(404).render('404', { title: 'Page Not Found' });
+});
+
+
 app.use((req, res, next) => {
     res.locals.user = req.session.user;
     next();
   });
 
 // Start server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
